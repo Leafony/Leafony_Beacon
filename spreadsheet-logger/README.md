@@ -1,8 +1,10 @@
 # spreadsheet-logger
-A data logger for Leafony beacons with Google SpreadSheet
+A data logger for Leafony beacons with Google SpreadSheet.
+
+![image](./img/spreadsheet.png)
 
 ## Prerequisites
-Enable Google SpreadSheet API and download `credientials.json`
+Enable Google SpreadSheet API and download `credientials.json`.
 
 ## Install
 
