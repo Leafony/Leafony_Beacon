@@ -15,9 +15,9 @@
 //    https://opensource.org/licenses/mit-license.php//
 //
 //=====================================================================
-//一定間隔で起きてアドバタイズデータにセンサーリーフの温度と電池電圧を
-//含め起動中アドバタイズを行う
-//アドバタイズは全チャンネル、間隔は250ms-500ms
+//  一定間隔で起きてアドバタイズデータにセンサーリーフの温度と電池電圧を
+//  含め起動中アドバタイズを行う
+//  アドバタイズは全チャンネル、間隔は250ms-500ms
 //=====================================================================
 
 #include <MsTimer2.h>
@@ -43,25 +43,22 @@ String strDeviceName = "Leaf_A";
 // SLEEP動作の有効無効切り替え
 // SLEEP_ENABLE = 0 :無効 SLEEP_ENABLE = 1 :有効
 //=====================================================================
-#define SLEEP_ENABLE (1)
+#define SLEEP_ENABLE 1
 
 //=====================================================================
 // シリアルコンソールへのデバック出力
-//      #define DEBUG = 出力あり
-//　　//#define DEBUG = 出力なし（コメントアウトする）
+//    #define DEBUG = 出力あり
+//　　// #define DEBUG = 出力なし（コメントアウトする）
 //=====================================================================
 // #define DEBUG
 
 //=====================================================================
 // スリープ時間、起動時間、送信間隔の設定
 //  SLEEP_INTERVAL :スリープ時間　8秒単位で設定
-//  WAKE_INTERVAL　：起動時間（スリープ復帰からスリープまでの時間）１秒単位(アドバタイズ時間）
+//  WAKE_INTERVAL　：起動時間（スリープ復帰からスリープまでの時間）1秒単位(アドバタイズ時間）
 //=====================================================================
-// #define SLEEP_INTERVAL  (450)     // 8s x 450 = 3600s = 1h
-// #define SLEEP_INTERVAL  (225)     // 8s x 225 = 1800s = 30min
-#define SLEEP_INTERVAL  (113)     // 8s x 113 = 904s = 15min
-// #define SLEEP_INTERVAL (1) // 8s x 1 = 8s
-#define WAKE_INTERVAL (1)  // 1s
+#define SLEEP_INTERVAL 113  // 8s x 113 = 904s = 15min
+#define WAKE_INTERVAL  2    // 2s
 
 //=====================================================================
 // IOピンの名前定義
@@ -89,8 +86,8 @@ String strDeviceName = "Leaf_A";
 
 // --------------------------------------------
 // PB port
-//     digital 8: PB0 = UART2_RX (software UART)  /* not use */
-//     digital 9: PB1 = UART2_TX (software UART)  /* not use */
+//     digital 8: PB0 = UART2_RX (software UART)
+//     digital 9: PB1 = UART2_TX (software UART)
 //     digital 10:PB2 = SS#
 //     digital 11:PB3 = MOSI
 //     digital 12:PB4 = MISO
@@ -229,9 +226,6 @@ volatile bool bSleep = false;
 volatile int countWDT = 0;
 volatile int wakeupWDT = SLEEP_INTERVAL;
 
-volatile bool bWakeupINT0 = false;
-volatile bool bWakeupINT1 = false;
-
 //---------------------------
 // led
 //---------------------------
@@ -269,7 +263,7 @@ void setupPort()
   pinMode(LED, OUTPUT); // PD4 : digital 4 = LED
   digitalWrite(LED, LOW);
 
-  pinMode(PIN3_D5, INPUT); // PD5 : digital 5 = not used
+  pinMode(PIN3_D5, INPUT); // PD5 : digital 5 = not in use
 
   pinMode(BLE_RESET_PIN, OUTPUT); // PD6 : digital 6 = BLE reset active-low
   digitalWrite(BLE_RESET_PIN, LOW);
@@ -280,15 +274,12 @@ void setupPort()
   //---------------------
   // PB port
   //---------------------
-  pinMode(UART2_RX, INPUT); // PB0 : digital 8 = software UART2
+  pinMode(UART2_RX, INPUT); // PB0 : digital 8 = not in use
+  pinMode(UART2_TX, INPUT); // PB1 : digital 9 = not in use
 
-  pinMode(UART2_TX, INPUT); // PB1 : digital 9 = software UART2
-
-  pinMode(SS, INPUT); // PB2 : digital 10 = not used
-
-  pinMode(MOSI, INPUT); // PB3 : digital 11 = not used
-
-  pinMode(MISO, INPUT); // PB4 : digital 12 = not used
+  pinMode(SS, INPUT);   // PB2 : digital 10 = not in use
+  pinMode(MOSI, INPUT); // PB3 : digital 11 = not in use
+  pinMode(MISO, INPUT); // PB4 : digital 12 = not in use
 
   pinMode(LED_PIN, OUTPUT); // PB5 : digital 13 =LED on 8bit-Dev. Leaf
   digitalWrite(LED_PIN, LOW);
@@ -296,12 +287,12 @@ void setupPort()
   //---------------------
   // PC port
   //---------------------
-  pinMode(PIN24_D14, INPUT); // PC0 : digital 14 = not used
+  pinMode(PIN24_D14, INPUT); // PC0 : digital 14 = not in use
 
   // PC1 : digital 15 = BLETX
   // PC2 : digital 16 = BLERX
 
-  pinMode(PIN27_D17, INPUT); // PC3 : digital 17  = not used
+  pinMode(PIN27_D17, INPUT); // PC3 : digital 17  = not in use
 
   // PC4 : digital 18 = I2C SDA
   // PC5 : digital 19 = I2C SCL
@@ -328,36 +319,6 @@ void setupTC2Int()
 {
   MsTimer2::set(LOOP_INTERVAL, intTimer2);
 }
-//=====================================================================
-// I2C　制御関数
-//
-//=====================================================================
-//-----------------------------------------------
-//I2C スレーブデバイスに1バイト書き込む
-//-----------------------------------------------
-void i2c_write_byte(int device_address, int reg_address, int write_data)
-{
-  Wire.beginTransmission(device_address);
-  Wire.write(reg_address);
-  Wire.write(write_data);
-  Wire.endTransmission();
-}
-//-----------------------------------------------
-//I2C スレーブデバイスから1バイト読み込む
-//-----------------------------------------------
-unsigned char i2c_read_byte(int device_address, int reg_address)
-{
-  int read_data = 0;
-
-  Wire.beginTransmission(device_address);
-  Wire.write(reg_address);
-  Wire.endTransmission(false);
-
-  Wire.requestFrom(device_address, 1);
-  read_data = Wire.read();
-
-  return read_data;
-}
 
 //=====================================================================
 // 各デバイスの初期設定
@@ -372,10 +333,9 @@ void setupSensor()
   // LIS2DH (accelerometer)
   //-------------------------------------
   accel.begin(LIS2DH_ADDRESS);
-  accel.writeRegister8(LIS3DH_REG_CTRL1, 0x07); // X,Y,Z axis = enable
-  accel.setDataRate(LIS3DH_DATARATE_1_HZ);      // Data rate = 1Hz
-  accel.writeRegister8(LIS3DH_REG_CTRL2, 0x00); // INT Disable
-  accel.writeRegister8(LIS3DH_REG_CTRL4, 0x80); // BUD = enable, Scale = +/-2g
+  accel.setClick(0, 0);                     // Disable Interrupt
+  accel.setRange(LIS3DH_RANGE_2_G);         // Full scale +/- 2G
+  accel.setDataRate(LIS3DH_DATARATE_1_HZ);  // Data rate = 1Hz
 
   //-------------------------------------
   // HTS221 (temperature /humidity)
@@ -446,109 +406,47 @@ void setupBLE()
 //-----------------------------------------------
 void StartAdvData()
 {
+  char charTemp[7], charBatt[7];
+  char userData[15];
+  uint8 dataLen;
+
   uint8 stLen;
-  float value;
-  char temp[7], battVolt[7];
-  char code[4];
-  char sendData[15];
-  uint8 sendLen;
+  uint8 adv_data[25];  // advertising data (max 25bytes)
+  uint8 index = 0;
 
-  /* setting */
-  /* [set Advertising Data]  25byte MAX*/
-  uint8 adv_data[] = {
-      (2),                                  //0:  field length
-      BGLIB_GAP_AD_TYPE_FLAGS,              //1:  field type (0x01)
-      (6),                                  //2:  data
-      (1),                                  //3:  field length (1は仮の初期値) BGLIB_GAP_AD_TYPE_LOCALNAME_COMPLETE(LOCAL DEVICE NAMEのデータ長
-      BGLIB_GAP_AD_TYPE_LOCALNAME_COMPLETE, //4:  field type (0x09)
-      (0),                                  //5:  L  1
-      (0),                                  //6:  e  2
-      (0),                                  //7:  a  3
-      (0),                                  //8:  f  4
-      (0),                                  //9:  _  5
-      (0),                                  //10: A  6
-      (0),                                  //11: field length
-      (0xff),                               //12: field type (0xff)
-      (0),                                  //13: 温度 1 T 1
-      (0),                                  //14: 温度 2 X 2
-      (0),                                  //15: 温度 3 X 3
-      (0),                                  //16: 温度 4 . 4
-      (0),                                  //17: 温度 5 X 5
-      (0),                                  //18: 温度 6 X 6
-      (0),                                  //19: 電圧 S V 7
-      (0),                                  //20: 電圧 1 X 8
-      (0),                                  //21: 電圧 2 . 9
-      (0),                                  //22: 電圧 3 X 10
-      (0),                                  //23: 電圧 4 X 11
-      (0),                                  //24:
-  };
+  // AD Structure 1 (Flags)
+  adv_data[index++] = 0x02;                       // field length
+  adv_data[index++] = BGLIB_GAP_AD_TYPE_FLAGS;    // AD Type (Flags)
+  adv_data[index++] = (1 << 1) | (1 << 2);        // LE General Discover Mode | BR/EDR Not Supported
 
-  //-------------------------
-  // Temperature (5Byte)
-  //-------------------------
-  value = dataTemp;
-
-  if (value >= 100)
-  {
-    value = 99.99;
+  // AD Structure 2 (Complete Local Name)
+  adv_data[index++] = strDeviceName.length() + 1;  // field length
+  adv_data[index++] = BGLIB_GAP_AD_TYPE_LOCALNAME_COMPLETE;  // AD Type (Complete Local Name)
+  for (uint8 i = 0; i < strDeviceName.length(); i++){
+    adv_data[index++] = strDeviceName.charAt(i);  // Local Name
   }
-  else if (value <= -10)
-  {
-    value = -9.99;
-  }
-  dtostrf(value, 5, 2, temp);
-  //-------------------------
-  // Battery Voltage (4Byte)
-  //-------------------------
-  value = dataBatt;
 
-  if (value >= 10)
-  {
-    value = 9.99;
-  }
-  else if (value < 0)
-  {
-    value = 0;
-  }
-  dtostrf(value, 4, 2, battVolt);
+  // AD Structure 3 (Manufacturer Specific Data)
+  dtostrf(dataTemp, 5, 2, charTemp);  // Temperature (5byte)
+  dtostrf(dataBatt, 4, 2, charBatt);  // Battery Voltage (4byte)
+  dataLen = sprintf(userData, "T%5sV%4s", charTemp, charBatt);
 
-  sendLen = sprintf(sendData, "T%sV%s", temp, battVolt);
+  adv_data[index++] = dataLen + 1;  // field lengh
+  adv_data[index++] = 0xff;         // AD Type (Manufacturer Specific Data)
 
-  /*  */
-  size_t lenStr2 = strDeviceName.length();
-  // BGLIB_GAP_AD_TYPE_LOCALNAME_COMPLETEのfield lengthを設定
-  adv_data[3] = (lenStr2 + 1); // field length
-  //アドバタイズデータにローカルデバイス名を入れる
-  uint8 u8Index;
-  for (u8Index = 0; u8Index < lenStr2; u8Index++)
-  {
-    adv_data[5 + u8Index] = strDeviceName.charAt(u8Index);
+  for (uint8 i = 0; i < dataLen; i++){
+    adv_data[index++] = userData[i];  // User Data
   }
-  adv_data[5 + u8Index] = 12;
-  adv_data[5 + u8Index + 1] = 0xFF;
-  adv_data[5 + u8Index + 2] = sendData[0];
-  adv_data[5 + u8Index + 3] = sendData[1];
-  adv_data[5 + u8Index + 4] = sendData[2];
-  adv_data[5 + u8Index + 5] = sendData[3];
-  adv_data[5 + u8Index + 6] = sendData[4];
-  adv_data[5 + u8Index + 7] = sendData[5];
-  adv_data[5 + u8Index + 8] = sendData[6];
-  adv_data[5 + u8Index + 9] = sendData[7];
-  adv_data[5 + u8Index + 10] = sendData[8];
-  adv_data[5 + u8Index + 11] = sendData[9];
-  adv_data[5 + u8Index + 12] = sendData[10];
 
   //アドバタイズデータを登録
-  stLen = (5 + lenStr2 + 13);
+  stLen = index;
   ble112.ble_cmd_le_gap_set_adv_data(SCAN_RSP_ADVERTISING_PACKETS, stLen, adv_data); //SCAN_RSP_ADVERTISING_PACKETS
-  while (ble112.checkActivity(1000))
-    ; /* 受信チェック */
+  while (ble112.checkActivity(1000));  // 受信チェック
 
   /* start */
   // index = 0  LE_GAP_SCANNABLE_NON_CONNECTABLE / LE_GAP_UNDIRECTED_CONNECTABLE
   ble112.ble_cmd_le_gap_start_advertising(0, LE_GAP_USER_DATA, LE_GAP_SCANNABLE_NON_CONNECTABLE);
-  while (ble112.checkActivity(1000))
-    ; /* 受信チェック */
+  while (ble112.checkActivity(1000));  // 受信チェック
 }
 
 //=====================================================================
@@ -594,7 +492,6 @@ ISR(WDT_vect)
 void intExtInt0()
 {
   bSleep = false;
-  //bWakeupINT0 = true;
 }
 
 //----------------------------------------------
@@ -604,7 +501,6 @@ void intExtInt0()
 void intExtInt1()
 {
   bSleep = false;
-  //bWakeupINT1 = true;
 }
 
 //====================================================================
@@ -677,6 +573,16 @@ void getSensor()
   // 温湿度センサーデータ取得
   //-------------------------
   dataTemp = (float)smeHumidity.readTemperature(); //温度
+
+  if (dataTemp >= 100)
+  {
+    dataTemp = 99.99;
+  }
+  else if (dataTemp <= -10)
+  {
+    dataTemp = -9.99;
+  }
+
   dataHumid = (float)smeHumidity.readHumidity();   //湿度
 
   //-------------------------
@@ -710,9 +616,18 @@ void getSensor()
     adcVal1 = adcVal2 = 0;
   }
 
-  //電圧計算　ADC　* （(リファレンス電圧(3.3V)/ ADCの分解能(256)) * 分圧比（２倍））
+  //電圧計算　ADC　* (リファレンス電圧(3.3V) / ADCの分解能(256) * 分圧比(2倍)
   temp_mv = ((double)((adcVal1 << 4) | (adcVal2 >> 4)) * 3300 * 2) / 256;
   dataBatt = (float)(temp_mv / 1000);
+
+  if (dataBatt >= 10)
+  {
+    dataBatt = 9.99;
+  }
+  else if (dataBatt < 0)
+  {
+    dataBatt = 0;
+  }
 
 #ifdef DEBUG
   Serial.println("");
@@ -901,7 +816,6 @@ void wakeupSensor()
   errorConfig = light.writeConfig(newConfig);
   if (errorConfig != NO_ERROR)
   {
-
     errorConfig = light.writeConfig(newConfig); //retry
   }
 
