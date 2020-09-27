@@ -1,5 +1,5 @@
 {
-  "name": "logger",
+  "name": "spreadsheet-logger",
   "version": "1.0.0",
   "description": "A BLE beacon logger with Google SpreadSheet",
   "main": "index.js",
@@ -11,8 +11,9 @@
   },
   "devDependencies": {},
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Leafony",
   "license": "MIT"
 }
