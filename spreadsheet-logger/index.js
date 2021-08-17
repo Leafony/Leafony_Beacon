@@ -152,11 +152,18 @@ const discovered = (peripheral) => {
         let dt = new Date();
         let dt_s = dt.toFormat('YYYY/MM/DD HH24:MI:SS');
 
-        // Decode sensors data
+        // Decode sensors data (for AVR MCU)
         let temperature = ((device.data[0] << 8) + device.data[1]) / 256;
         let humid = ((device.data[2] << 8) + device.data[3]) / 256;
         let light = ((device.data[4] << 8) + device.data[5]);
         let battery = ((device.data[6] << 8) + device.data[7]) / 256;
+
+        /*
+        // Decode sensors data (for STM32 MCU)
+        let temperature = ((device.data[0] << 8) + device.data[1]) / 256;
+        let humid = ((device.data[2] << 8) + device.data[3]) / 256;
+        let battery = ((device.data[4] << 8) + device.data[5]) / 256;
+        */
 
         let values = [
           [device.name, dt_s, temperature, humid, light, battery, device.rssi]
