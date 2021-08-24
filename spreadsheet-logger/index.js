@@ -160,9 +160,9 @@ const discovered = (peripheral) => {
 
         /*
         // Decode sensors data (for STM32 MCU)
-        let temperature = ((device.data[0] << 8) + device.data[1]) / 256;
-        let humid = ((device.data[2] << 8) + device.data[3]) / 256;
-        let battery = ((device.data[4] << 8) + device.data[5]) / 256;
+        let temperature = ((device.data[2] << 8) + device.data[3]) / 256;
+        let humid = ((device.data[4] << 8) + device.data[5]) / 256;
+        let battery = ((device.data[6] << 8) + device.data[7]) / 256;
         */
 
         let values = [
