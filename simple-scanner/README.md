@@ -35,7 +35,7 @@ See [set up guide of Noble on Windows](https://github.com/noble/noble#windows).
     $ git clone https://github.com/Leafony/Leafony_Beacon
     $ cd Leafony_Beacon/simple-scanner
     $ npm install
-    $ sudo node ./scan.js
+    $ sudo npm start
 
 ## Usage 
 

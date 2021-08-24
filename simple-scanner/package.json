@@ -11,7 +11,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "node scan.js"
+    "start": "node scan.js"
   },
   "repository": {
     "type": "git",

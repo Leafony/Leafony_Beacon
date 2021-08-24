@@ -50,7 +50,7 @@ const sheetName = 'Sheet1';
 Put your `credentials.json` in this project directory and run this script.
 
 ``` 
-sudo node .
+sudo npm start
 ``` 
 
 Only the first run, authentication messages will appear. Please follow the steps and copy & paste your auth ID.
